@@ -68,7 +68,49 @@ Map drunkAgent(const Map& currentMap, int W, int H, int J, int I, int roomSizeX,
                double probGenerateRoom, double probIncreaseRoom,
                double probChangeDirection, double probIncreaseChange,
                int& agentX, int& agentY) {
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    std::mt19937 generator(seed);
+    std::cout << "--- DRUNK SIMULATION ACTIVE ---" << std::endl;
     Map newMap = currentMap; // The new map is a copy of the current one
+    //std::pair<int, int> directions = {1, -1};
+    std::uniform_int_distribution<int> distribution(0, 3);
+    newMap[agentX][agentY] = 2;
+    
+    int aumentoX;
+    int aumentoY;
+
+    for(int move = 0; move < J; move++){
+        int direction = distribution(generator);
+        for(int walk = 0; walk < I; walk++){
+            if(agentX > W || agentX < 0){
+                aumentoX = 0;
+            }
+            if(agentY > H || agentY < 0){
+                aumentoY = 0;
+            }
+            switch (direction)
+            {
+            case 0: //arriba
+                aumentoY = 1;
+                aumentoX = 0;
+                break;
+            case 1: //abajo
+                aumentoY = -1;
+                aumentoX = 0;
+                break;
+            case 2: //izquierda
+                aumentoX = -1;
+                aumentoY = 0;
+                break;
+            case 3: //derecha
+                aumentoX = 1;
+                aumentoY = 0;
+                break;
+            }
+            newMap[agentX + aumentoX][agentY + aumentoY] = 1;
+        }
+    }
+
 
     // TODO: IMPLEMENTATION GOES HERE for the Drunk Agent logic.
     // The agent should move randomly.
@@ -84,12 +126,16 @@ Map drunkAgent(const Map& currentMap, int W, int H, int J, int I, int roomSizeX,
 }
 
 int main() {
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    std::mt19937 generator(seed);
     std::cout << "--- CELLULAR AUTOMATA AND DRUNK AGENT SIMULATION ---" << std::endl;
 
     // --- Initial Map Configuration ---
     int mapRows = 10;
     int mapCols = 20;
     Map myMap(mapRows, std::vector<int>(mapCols, 0)); // Map initialized with zeros
+    std::uniform_int_distribution<int> distribution_W(0, mapRows);
+    std::uniform_int_distribution<int> distribution_H(0, mapCols);
 
     // TODO: IMPLEMENTATION GOES HERE: Initialize the map with some pattern or initial state.
     // For example, you might set some cells to 1 for the cellular automata
@@ -98,6 +144,8 @@ int main() {
     // Drunk Agent's initial position
     int drunkAgentX = mapRows / 2;
     int drunkAgentY = mapCols / 2;
+    //int drunkAgentX = distribution_H(generator);
+    //int drunkAgentY = distribution_W(generator);
     // If your agent modifies the map at start, you could do it here:
     // myMap[drunkAgentX][drunkAgentY] = 2; // Assuming '2' represents the agent
 
@@ -127,14 +175,16 @@ int main() {
 
 
     // --- Main Simulation Loop ---
-    for (int iteration = 0; iteration < numIterations; ++iteration) {
+    for (int iteration = 0; iteration < 1; ++iteration) {
         std::cout << "\n--- Iteration " << iteration + 1 << " ---" << std::endl;
 
         // TODO: IMPLEMENTATION GOES HERE: Call the Cellular Automata and/or Drunk Agent functions.
         // The order of calls will depend on how you want them to interact.
 
         // Example: First the cellular automata, then the agent
+        
         myMap = cellularAutomata(myMap, ca_W, ca_H, ca_R, ca_U);
+
         myMap = drunkAgent(myMap, da_W, da_H, da_J, da_I, da_roomSizeX, da_roomSizeY,
                            da_probGenerateRoom, da_probIncreaseRoom,
                            da_probChangeDirection, da_probIncreaseChange,
