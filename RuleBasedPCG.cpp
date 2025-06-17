@@ -68,49 +68,120 @@ Map drunkAgent(const Map& currentMap, int W, int H, int J, int I, int roomSizeX,
                double probGenerateRoom, double probIncreaseRoom,
                double probChangeDirection, double probIncreaseChange,
                int& agentX, int& agentY) {
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     std::mt19937 generator(seed);
     std::cout << "--- DRUNK SIMULATION ACTIVE ---" << std::endl;
     Map newMap = currentMap; // The new map is a copy of the current one
-    //std::pair<int, int> directions = {1, -1};
-    std::uniform_int_distribution<int> distribution(0, 3);
-    newMap[agentX][agentY] = 2;
-    
-    int aumentoX;
-    int aumentoY;
-
-    for(int move = 0; move < J; move++){
-        int direction = distribution(generator);
-        for(int walk = 0; walk < I; walk++){
-            if(agentX > W || agentX < 0){
-                aumentoX = 0;
-            }
-            if(agentY > H || agentY < 0){
-                aumentoY = 0;
-            }
-            switch (direction)
-            {
-            case 0: //arriba
-                aumentoY = 1;
-                aumentoX = 0;
-                break;
-            case 1: //abajo
-                aumentoY = -1;
-                aumentoX = 0;
-                break;
-            case 2: //izquierda
-                aumentoX = -1;
-                aumentoY = 0;
-                break;
-            case 3: //derecha
-                aumentoX = 1;
-                aumentoY = 0;
-                break;
-            }
-            newMap[agentX + aumentoX][agentY + aumentoY] = 1;
+    //bool complete_move = false;
+    std::uniform_int_distribution<int> directions(0, 3); //Posibles direcciones a tomar 
+    newMap[agentY][agentX] = 2; //Posicion inicial del agente
+    auto probabilidadAux = probChangeDirection;
+    auto probabilidadRoomAux = probGenerateRoom;
+    bool CreateRoom = false;
+    int direct = 0; //Valor del switch para direcciones
+    for(int move = 0; move < J; move++){ //Movimientos que dara el agente
+        //debería crear una variable que me provea la dirección previa
+        auto auxDir = direct;
+        
+        if((std::rand() % 1,0) <= probabilidadAux){//si el numero aleatorio coincide a ser menor que la probabilidad aux
+            direct = directions(generator); //Direccion aleatoria    entonces cambia de dirección random
         }
-    }
+        //pregunto si son iguales
+        if(auxDir == direct){
+            probIncreaseChange++;
+            probabilidadAux = probIncreaseChange;
+        }
+        else{
+            probabilidadAux = probChangeDirection;
+        }
 
+        std::cout << "Movimiento: " << move + 1 << " - Direccion: " << direct << std::endl;
+        switch (direct)
+        {
+        case 0: //arriba ----
+            for(int walk = 0; walk < I; walk++){ //Pasos del agente
+                if(agentY <= 0){ //Si topan el muro
+                    break; //Se rompe el ciclo
+                }
+                newMap[agentY--][agentX] = 1; //Se mueve el agente
+            }
+            break;
+        case 1: //abajo ----//
+            for(int walk = 0; walk < I; walk++){
+                if(agentY >= W - 1){
+                    break;
+                }
+                newMap[agentY++][agentX] = 1;
+            }
+            break;
+        case 2: //izquierda ----
+            for(int walk = 0; walk < I; walk++){
+                if(agentX <= 0){
+                    break;
+                }
+                newMap[agentY][agentX--] = 1;
+            }
+            break;
+        case 3: //derecha ----
+            for(int walk = 0; walk < I; walk++){
+                if(agentX >= H - 1){
+                    break;
+                }
+                newMap[agentY][agentX++] = 1;
+            }
+            break;
+        }
+        //una vez llega tiene que dibujar la room
+        if((rand() % 1,0) < probabilidadRoomAux){
+            CreateRoom = true;
+            auto BordeX = roomSizeX + agentX;
+            auto BordeY = roomSizeY+ agentY;
+            //auxiliares para poder saber desde donde comenzar a dibujar la room
+            auto initRoomX = agentX;
+            auto initRoomY = agentY;
+            if(BordeX >= W + 1 && BordeY > H + 1){
+                for(int y_room = agentY; y_room > BordeY; y_room--){
+                    for(int x_room = agentX; x_room > BordeX; x_room--){
+                        newMap[x_room][y_room] = 1;
+                    }                
+                }
+            }
+            else if(BordeX >= W +1){
+                for(int y_room = agentY; y_room < BordeY; y_room++){
+                    for(int x_room = agentX; x_room > BordeX; x_room--){
+                        newMap[x_room][y_room] = 1;
+                    }                
+                }
+            }else if (BordeY >= H + 1)
+            {
+                for(int y_room = agentY; y_room > BordeY; y_room--){
+                    for(int x_room = agentX; x_room < BordeX; x_room++){
+                        newMap[x_room][y_room] = 1;
+                    }                
+                }
+            }
+            else{
+                 for(int y_room = agentY; y_room < BordeY; y_room++){
+                    for(int x_room = agentX; x_room < BordeX; x_room++){
+                        newMap[x_room][y_room] = 1;
+                    }                
+                }
+            }
+            
+            
+            //Si no se crea la room entonces incrementa la posibilidad
+            
+        }
+        if(CreateRoom = false){
+                probIncreaseRoom++;
+                probabilidadRoomAux = probIncreaseRoom;
+            }else{//si se crea, vuelve a ser la por defecto
+                probabilidadRoomAux = probGenerateRoom;
+            }
+            CreateRoom = false;
+    }
+    std::cout << "direccion: " << direct << std::endl;
+    
 
     // TODO: IMPLEMENTATION GOES HERE for the Drunk Agent logic.
     // The agent should move randomly.
@@ -121,9 +192,10 @@ Map drunkAgent(const Map& currentMap, int W, int H, int J, int I, int roomSizeX,
     // - How it modifies the map (e.g., leaving a trail, creating rooms, etc.).
     // - Use the provided parameters (J, I, roomSizeX, roomSizeY, probabilities)
     //   to control its behavior.
-
+    
     return newMap;
 }
+
 
 int main() {
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -131,21 +203,24 @@ int main() {
     std::cout << "--- CELLULAR AUTOMATA AND DRUNK AGENT SIMULATION ---" << std::endl;
 
     // --- Initial Map Configuration ---
-    int mapRows = 10;
-    int mapCols = 20;
-    Map myMap(mapRows, std::vector<int>(mapCols, 0)); // Map initialized with zeros
-    std::uniform_int_distribution<int> distribution_W(0, mapRows);
-    std::uniform_int_distribution<int> distribution_H(0, mapCols);
+    //int mapRows = 10;
+    //int mapCols = 20;
+    int mapRows = 20;
+    int mapCols = 10;
+    //Map myMap(mapRows, std::vector<int>(mapCols, 0)); // Map initialized with zeros
+    Map myMap(mapCols, std::vector<int>(mapRows, 0));
+    std::uniform_int_distribution<int> distribution_W(0, mapCols);
+    std::uniform_int_distribution<int> distribution_H(0, mapRows);
 
     // TODO: IMPLEMENTATION GOES HERE: Initialize the map with some pattern or initial state.
     // For example, you might set some cells to 1 for the cellular automata
     // or place the drunk agent at a specific position.
 
     // Drunk Agent's initial position
-    int drunkAgentX = mapRows / 2;
-    int drunkAgentY = mapCols / 2;
-    //int drunkAgentX = distribution_H(generator);
-    //int drunkAgentY = distribution_W(generator);
+    //int drunkAgentX = mapRows / 2;
+    //int drunkAgentY = mapCols / 2;
+    int drunkAgentX = distribution_H(generator);
+    int drunkAgentY = distribution_W(generator);
     // If your agent modifies the map at start, you could do it here:
     // myMap[drunkAgentX][drunkAgentY] = 2; // Assuming '2' represents the agent
 
@@ -164,9 +239,9 @@ int main() {
     // Drunk Agent Parameters
     int da_W = mapCols;
     int da_H = mapRows;
-    int da_J = 5;      // Number of "walks"
-    int da_I = 10;     // Steps per walk
-    int da_roomSizeX = 5;
+    int da_J = 10;      // Number of "walks"
+    int da_I = 5;     // Steps per walk
+    int da_roomSizeX = 3;
     int da_roomSizeY = 3;
     double da_probGenerateRoom = 0.1;
     double da_probIncreaseRoom = 0.05;
@@ -183,8 +258,8 @@ int main() {
 
         // Example: First the cellular automata, then the agent
         
-        myMap = cellularAutomata(myMap, ca_W, ca_H, ca_R, ca_U);
-
+        //myMap = cellularAutomata(myMap, ca_W, ca_H, ca_R, ca_U);
+        std::cout << "coor Y: " << drunkAgentY << ", coor X: " << drunkAgentX << std::endl;
         myMap = drunkAgent(myMap, da_W, da_H, da_J, da_I, da_roomSizeX, da_roomSizeY,
                            da_probGenerateRoom, da_probIncreaseRoom,
                            da_probChangeDirection, da_probIncreaseChange,
