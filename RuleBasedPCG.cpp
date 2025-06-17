@@ -35,7 +35,42 @@ void printMap(const Map& map) {
  */
 Map cellularAutomata(const Map& currentMap, int W, int H, int R, double U) {
     Map newMap = currentMap; // Initially, the new map is a copy of the current one
+   
+    //Primero se generará el ruido para la generación del mapa
+   
+    for (int y = 0 ; y < H; y++){
+        for(int x = 0; x < W; x++){
+            if((rand() % 30)< 5){//se genera ruido siempre que salga un numero menor que 5 en un rango de 30
+                newMap[x][y] = 1;
+            }
+        }
+    }
 
+    //se recorre el mapa
+    for (int y = 0; y < H ; y++){
+        for (int x = 0; x < W; x ++){
+            //una vez voy recorriendo el mapa debo recorrer el area al rededor del punto para revisar si tiene los valores necesarios para difuminar
+            int count = 0;
+            for(int radY = - R; radY <= R; radY++){
+                for (int radX = - R; radX <= R; radX++){
+                    int nx = x + radX;
+                    int ny = y + radY;
+
+                     if (nx < 0 || nx >= W || ny < 0 || ny >= H) {//si sale del mapa, salta ese paso
+            
+                        continue;
+                    }
+                    count += newMap[nx][ny];
+                }
+            }
+            if(count >= U){
+                newMap[x][y] = 1;
+            }
+            else{
+                newMap[x][y] = 0;
+            }
+        }
+    }
     // TODO: IMPLEMENTATION GOES HERE for the cellular automata logic.
     // Iterate over each cell and apply the transition rules.
     // Remember that updates should be based on the 'currentMap' state
@@ -258,12 +293,12 @@ int main() {
 
         // Example: First the cellular automata, then the agent
         
-        //myMap = cellularAutomata(myMap, ca_W, ca_H, ca_R, ca_U);
-        std::cout << "coor Y: " << drunkAgentY << ", coor X: " << drunkAgentX << std::endl;
-        myMap = drunkAgent(myMap, da_W, da_H, da_J, da_I, da_roomSizeX, da_roomSizeY,
+        myMap = cellularAutomata(myMap, ca_W, ca_H, ca_R, ca_U);
+        //std::cout << "coor Y: " << drunkAgentY << ", coor X: " << drunkAgentX << std::endl;
+        /*myMap = drunkAgent(myMap, da_W, da_H, da_J, da_I, da_roomSizeX, da_roomSizeY,
                            da_probGenerateRoom, da_probIncreaseRoom,
                            da_probChangeDirection, da_probIncreaseChange,
-                           drunkAgentX, drunkAgentY);
+                           drunkAgentX, drunkAgentY);*/
 
         printMap(myMap);
 
