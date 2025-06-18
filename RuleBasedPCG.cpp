@@ -34,19 +34,18 @@ void printMap(const Map& map) {
  * @return The map after applying the cellular automata rules.
  */
 Map cellularAutomata(const Map& currentMap, int W, int H, int R, double U) {
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    srand(seed);
     Map newMap = currentMap; // Initially, the new map is a copy of the current one
    
-    //Primero se generará el ruido para la generación del mapa
-   
-    for (int y = 0 ; y < H; y++){
-        for(int x = 0; x < W; x++){
-            if((rand() % 30)< 4){//se genera ruido siempre que salga un numero menor que 5 en un rango de 30
-                newMap[x][y] = 1;
-            }
+    //se genera el ruido
+    for (int y = 0; y < H; ++y) {
+        for (int x = 0; x < W; ++x) {
+            newMap[x][y] = ((rand() % 30) < 2) ? 1 : 0;
         }
     }
-    Map NoisyMap = newMap;
-    //se recorre el mapa
+    Map noisyMap = newMap;
+    //se recorre el mapa nuevo
     for (int y = 0; y < H ; y++){
         for (int x = 0; x < W; x ++){
             //una vez voy recorriendo el mapa debo recorrer el area al rededor del punto para revisar si tiene los valores necesarios para difuminar
@@ -58,17 +57,14 @@ Map cellularAutomata(const Map& currentMap, int W, int H, int R, double U) {
 
                      if (nx < 0 || nx >= W || ny < 0 || ny >= H) {//si sale del mapa, salta ese paso
             
-                        continue;
+                        count += 1;
+                    }else{
+                        count += newMap[nx][ny];
                     }
-                    count += newMap[nx][ny];
+                    
                 }
             }
-            if(count >= U){
-                NoisyMap[x][y] = 1;
-            }
-            else{
-                NoisyMap[x][y] = 0;
-            }
+            noisyMap[x][y] = (count>= U) ? 0:1;
         }
     }
     // TODO: IMPLEMENTATION GOES HERE for the cellular automata logic.
@@ -76,8 +72,9 @@ Map cellularAutomata(const Map& currentMap, int W, int H, int R, double U) {
     // Remember that updates should be based on the 'currentMap' state
     // and applied to the 'newMap' to avoid race conditions within the same iteration.
 
-    return NoisyMap;
+    return noisyMap;
 }
+
 
 /**
  * @brief Function to implement the Drunk Agent logic.
@@ -104,7 +101,9 @@ Map drunkAgent(const Map& currentMap, int W, int H, int J, int I, int roomSizeX,
                double probChangeDirection, double probIncreaseChange,
                int& agentX, int& agentY) {
 unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+
     std::mt19937 generator(seed);
+    srand(seed);
     std::cout << "--- DRUNK SIMULATION ACTIVE ---" << std::endl;
     Map newMap = currentMap; // The new map is a copy of the current one
     //bool complete_move = false;
@@ -283,7 +282,7 @@ int main() {
     double da_probChangeDirection = 0.2;
     double da_probIncreaseChange = 0.03;
 
-
+    
     // --- Main Simulation Loop ---
     for (int iteration = 0; iteration < 1; ++iteration) {
         std::cout << "\n--- Iteration " << iteration + 1 << " ---" << std::endl;
@@ -292,7 +291,6 @@ int main() {
         // The order of calls will depend on how you want them to interact.
 
         // Example: First the cellular automata, then the agent
-        
         myMap = cellularAutomata(myMap, ca_W, ca_H, ca_R, ca_U);
         //std::cout << "coor Y: " << drunkAgentY << ", coor X: " << drunkAgentX << std::endl;
         /*myMap = drunkAgent(myMap, da_W, da_H, da_J, da_I, da_roomSizeX, da_roomSizeY,
