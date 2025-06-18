@@ -40,12 +40,12 @@ Map cellularAutomata(const Map& currentMap, int W, int H, int R, double U) {
    
     for (int y = 0 ; y < H; y++){
         for(int x = 0; x < W; x++){
-            if((rand() % 30)< 5){//se genera ruido siempre que salga un numero menor que 5 en un rango de 30
+            if((rand() % 30)< 4){//se genera ruido siempre que salga un numero menor que 5 en un rango de 30
                 newMap[x][y] = 1;
             }
         }
     }
-
+    Map NoisyMap = newMap;
     //se recorre el mapa
     for (int y = 0; y < H ; y++){
         for (int x = 0; x < W; x ++){
@@ -64,10 +64,10 @@ Map cellularAutomata(const Map& currentMap, int W, int H, int R, double U) {
                 }
             }
             if(count >= U){
-                newMap[x][y] = 1;
+                NoisyMap[x][y] = 1;
             }
             else{
-                newMap[x][y] = 0;
+                NoisyMap[x][y] = 0;
             }
         }
     }
@@ -76,7 +76,7 @@ Map cellularAutomata(const Map& currentMap, int W, int H, int R, double U) {
     // Remember that updates should be based on the 'currentMap' state
     // and applied to the 'newMap' to avoid race conditions within the same iteration.
 
-    return newMap;
+    return NoisyMap;
 }
 
 /**
