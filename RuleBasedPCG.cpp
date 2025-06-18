@@ -100,36 +100,36 @@ Map drunkAgent(const Map& currentMap, int W, int H, int J, int I, int roomSizeX,
                double probGenerateRoom, double probIncreaseRoom,
                double probChangeDirection, double probIncreaseChange,
                int& agentX, int& agentY) {
-unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     std::mt19937 generator(seed);
     srand(seed);
     std::cout << "--- DRUNK SIMULATION ACTIVE ---" << std::endl;
     Map newMap = currentMap; // The new map is a copy of the current one
     //bool complete_move = false;
     std::uniform_int_distribution<int> directions(0, 3); //Posibles direcciones a tomar 
+    std::uniform_real_distribution<> dis(0.0, 1);
     newMap[agentY][agentX] = 2; //Posicion inicial del agente
-    auto probabilidadAux = probChangeDirection;
-    auto probabilidadRoomAux = probGenerateRoom;
-    bool CreateRoom = false;
+    auto probDirAux = probChangeDirection;
+    auto probRoomAux = probGenerateRoom;
+    //bool CreateRoom = false;
     int direct = 0; //Valor del switch para direcciones
     for(int move = 0; move < J; move++){ //Movimientos que dara el agente
         //debería crear una variable que me provea la dirección previa
-        auto auxDir = direct;
+        int prevDir= direct;
         
-        if((std::rand() % 1,0) <= probabilidadAux){//si el numero aleatorio coincide a ser menor que la probabilidad aux
+        if(dis(generator) < probDirAux){//si el numero aleatorio coincide a ser menor que la probabilidad aux
             direct = directions(generator); //Direccion aleatoria    entonces cambia de dirección random
         }
         //pregunto si son iguales
-        if(auxDir == direct){
-            probIncreaseChange++;
-            probabilidadAux = probIncreaseChange;
+        if(direct == prevDir){
+            probDirAux += probIncreaseChange;
+            if(probDirAux > 1) probDirAux = 1;
         }
         else{
-            probabilidadAux = probChangeDirection;
+            probDirAux = probChangeDirection;
         }
 
-        std::cout << "Movimiento: " << move + 1 << " - Direccion: " << direct << std::endl;
+            std::cout << "Movimiento: " << move + 1 << " - Direccion: " << direct << std::endl;
         switch (direct)
         {
         case 0: //arriba ----
@@ -142,7 +142,7 @@ unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
             break;
         case 1: //abajo ----//
             for(int walk = 0; walk < I; walk++){
-                if(agentY >= W - 1){
+                if(agentY >= H - 1){
                     break;
                 }
                 newMap[agentY++][agentX] = 1;
@@ -158,7 +158,7 @@ unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
             break;
         case 3: //derecha ----
             for(int walk = 0; walk < I; walk++){
-                if(agentX >= H - 1){
+                if(agentX >= W - 1){
                     break;
                 }
                 newMap[agentY][agentX++] = 1;
@@ -166,7 +166,33 @@ unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
             break;
         }
         //una vez llega tiene que dibujar la room
-        if((rand() % 1,0) < probabilidadRoomAux){
+        
+        bool createRoom = false;
+        if (dis(generator) < probRoomAux){
+            int roomStartX = std::max(0, agentX - roomSizeX/2);
+            int roomStartY = std::max(0, agentY - roomSizeY/2);
+            int roomEndX = std::min(W, agentX + roomSizeY/2);
+            int roomEndY = std::min(H, agentY + roomSizeY/2);
+
+            for (int y = roomStartY; y < roomEndY; y++){
+                for (int x = roomStartX; x < roomEndX; x++){
+                    if(y >= 0 && y < H && x >= 0 && x < W)
+                    newMap[y][x] = 1;
+                }
+            }
+            createRoom = true;
+        }
+        
+        if(!createRoom){
+            probRoomAux += probIncreaseRoom;
+            if(probRoomAux > 1) probRoomAux = 1;
+        }
+        else{
+            probRoomAux = probGenerateRoom;
+        }
+
+
+        /*if((rand() % 1,0) < probabilidadRoomAux){
             CreateRoom = true;
             auto BordeX = roomSizeX + agentX;
             auto BordeY = roomSizeY+ agentY;
@@ -207,14 +233,14 @@ unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
             
         }
         if(CreateRoom = false){
-                probIncreaseRoom++;
-                probabilidadRoomAux = probIncreaseRoom;
-            }else{//si se crea, vuelve a ser la por defecto
-                probabilidadRoomAux = probGenerateRoom;
-            }
-            CreateRoom = false;
+            probIncreaseRoom++;
+            probabilidadRoomAux = probIncreaseRoom;
+        }else{//si se crea, vuelve a ser la por defecto
+            probabilidadRoomAux = probGenerateRoom;
+        }
+        CreateRoom = false;*/
     }
-    std::cout << "direccion: " << direct << std::endl;
+    newMap[agentY][agentX] = 2; //Posicion final del agente
     
 
     // TODO: IMPLEMENTATION GOES HERE for the Drunk Agent logic.
@@ -291,12 +317,12 @@ int main() {
         // The order of calls will depend on how you want them to interact.
 
         // Example: First the cellular automata, then the agent
-        myMap = cellularAutomata(myMap, ca_W, ca_H, ca_R, ca_U);
+        //myMap = cellularAutomata(myMap, ca_W, ca_H, ca_R, ca_U);
         //std::cout << "coor Y: " << drunkAgentY << ", coor X: " << drunkAgentX << std::endl;
-        /*myMap = drunkAgent(myMap, da_W, da_H, da_J, da_I, da_roomSizeX, da_roomSizeY,
+        myMap = drunkAgent(myMap, da_W, da_H, da_J, da_I, da_roomSizeX, da_roomSizeY,
                            da_probGenerateRoom, da_probIncreaseRoom,
                            da_probChangeDirection, da_probIncreaseChange,
-                           drunkAgentX, drunkAgentY);*/
+                           drunkAgentX, drunkAgentY);
 
         printMap(myMap);
 
