@@ -100,6 +100,7 @@ Map drunkAgent(const Map& currentMap, int W, int H, int J, int I, int roomSizeX,
                double probGenerateRoom, double probIncreaseRoom,
                double probChangeDirection, double probIncreaseChange,
                int& agentX, int& agentY) {
+    
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     std::mt19937 generator(seed);
     srand(seed);
@@ -108,10 +109,10 @@ Map drunkAgent(const Map& currentMap, int W, int H, int J, int I, int roomSizeX,
     //bool complete_move = false;
     std::uniform_int_distribution<int> directions(0, 3); //Posibles direcciones a tomar 
     std::uniform_real_distribution<> dis(0.0, 1);
-    newMap[agentY][agentX] = 2; //Posicion inicial del agente
+    newMap[agentY][agentX] = 1; //Posicion inicial del agente
     auto probDirAux = probChangeDirection;
     auto probRoomAux = probGenerateRoom;
-    //bool CreateRoom = false;
+    bool CreateRoom = false;
     int direct = 0; //Valor del switch para direcciones
     for(int move = 0; move < J; move++){ //Movimientos que dara el agente
         //debería crear una variable que me provea la dirección previa
@@ -137,7 +138,8 @@ Map drunkAgent(const Map& currentMap, int W, int H, int J, int I, int roomSizeX,
                 if(agentY <= 0){ //Si topan el muro
                     break; //Se rompe el ciclo
                 }
-                newMap[agentY--][agentX] = 1; //Se mueve el agente
+                agentY--;
+                newMap[agentY][agentX] = 1; //Se mueve el agente
             }
             break;
         case 1: //abajo ----//
@@ -145,7 +147,8 @@ Map drunkAgent(const Map& currentMap, int W, int H, int J, int I, int roomSizeX,
                 if(agentY >= H - 1){
                     break;
                 }
-                newMap[agentY++][agentX] = 1;
+                agentY++;
+                newMap[agentY][agentX] = 1;
             }
             break;
         case 2: //izquierda ----
@@ -153,15 +156,16 @@ Map drunkAgent(const Map& currentMap, int W, int H, int J, int I, int roomSizeX,
                 if(agentX <= 0){
                     break;
                 }
-                newMap[agentY][agentX--] = 1;
+                agentX--;
+                newMap[agentY][agentX] = 1;
             }
             break;
         case 3: //derecha ----
             for(int walk = 0; walk < I; walk++){
                 if(agentX >= W - 1){
                     break;
-                }
-                newMap[agentY][agentX++] = 1;
+                }agentX++;
+                newMap[agentY][agentX] = 1;
             }
             break;
         }
@@ -171,7 +175,7 @@ Map drunkAgent(const Map& currentMap, int W, int H, int J, int I, int roomSizeX,
         if (dis(generator) < probRoomAux){
             int roomStartX = std::max(0, agentX - roomSizeX/2);
             int roomStartY = std::max(0, agentY - roomSizeY/2);
-            int roomEndX = std::min(W, agentX + roomSizeY/2);
+            int roomEndX = std::min(W, agentX + roomSizeX/2);
             int roomEndY = std::min(H, agentY + roomSizeY/2);
 
             for (int y = roomStartY; y < roomEndY; y++){
@@ -192,7 +196,7 @@ Map drunkAgent(const Map& currentMap, int W, int H, int J, int I, int roomSizeX,
         }
 
 
-        /*if((rand() % 1,0) < probabilidadRoomAux){
+        if((rand() % 1,0) < probRoomAux){
             CreateRoom = true;
             auto BordeX = roomSizeX + agentX;
             auto BordeY = roomSizeY+ agentY;
@@ -234,13 +238,13 @@ Map drunkAgent(const Map& currentMap, int W, int H, int J, int I, int roomSizeX,
         }
         if(CreateRoom = false){
             probIncreaseRoom++;
-            probabilidadRoomAux = probIncreaseRoom;
+            probRoomAux = probIncreaseRoom;
         }else{//si se crea, vuelve a ser la por defecto
-            probabilidadRoomAux = probGenerateRoom;
+            probRoomAux = probGenerateRoom;
         }
-        CreateRoom = false;*/
+        CreateRoom = false;
     }
-    newMap[agentY][agentX] = 2; //Posicion final del agente
+    newMap[agentY][agentX] = 1; //Posicion final del agente
     
 
     // TODO: IMPLEMENTATION GOES HERE for the Drunk Agent logic.
@@ -269,8 +273,8 @@ int main() {
     int mapCols = 10;
     //Map myMap(mapRows, std::vector<int>(mapCols, 0)); // Map initialized with zeros
     Map myMap(mapCols, std::vector<int>(mapRows, 0));
-    std::uniform_int_distribution<int> distribution_W(0, mapCols);
-    std::uniform_int_distribution<int> distribution_H(0, mapRows);
+    std::uniform_int_distribution<int> distribution_W(0, mapCols-1);
+    std::uniform_int_distribution<int> distribution_H(0, mapRows-1);
 
     // TODO: IMPLEMENTATION GOES HERE: Initialize the map with some pattern or initial state.
     // For example, you might set some cells to 1 for the cellular automata
